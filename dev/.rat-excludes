@@ -1,0 +1,12 @@
+target
+cache
+.gitignore
+.gitattributes
+.project
+LICENSE
+NOTICE
+TAGS
+RELEASE
+.*md
+poetry.lock
+.rat-excludes
