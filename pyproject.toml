@@ -17,3 +17,12 @@ pyspark = {extras = ["connect"], version = "3.5.0"}
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+# When changing the version, we have to update
+# GitHub workflow version and dev/reformat-python
+required-version = "23.9.1"
+line-length = 100
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = 'cloudpickle|error_classes.py'
