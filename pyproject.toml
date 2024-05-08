@@ -17,8 +17,23 @@
 name = "congruity"
 version = "0.0.1"
 description = ""
-authors = ["Matthew Powers <matthewkevinpowers@gmail.com>"]
+authors = ["Matthew Powers <matthewkevinpowers@gmail.com>", "Martin Grund <martin@databricks.com>"]
 readme = "README.md"
+license = "Apache-2.0"
+homepage = "https://github.com/databricks/congruity"
+repository = "https://github.com/databricks/congruity"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved",
+    "License :: OSI Approved :: Apache Software License",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
