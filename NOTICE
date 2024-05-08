@@ -1,0 +1,26 @@
+Copyright (2024) Databricks, Inc.
+
+This Software includes software developed at Databricks (https://www.databricks.com/) and its use is subject to the included LICENSE file.
+____________
+This Software contains code from the following open source projects, licensed under the MIT license:
+
+pytest-dev/pytest - https://github.com/pytest-dev/pytest-describe
+Copyright (c) 2004 Holger Krekel and others
+License - https://github.com/pytest-dev/pytest/blob/main/LICENSE
+
+MrPowers/chispa - https://github.com/MrPowers/chispa
+Copyright (c) 2020 Matthew Powers
+License - https://github.com/MrPowers/chispa/blob/main/LICENSE.md
+
+pytest-dev/pytest-describe - https://github.com/pytest-dev/pytest
+Copyright (c) pytest-describe authors
+License - https://github.com/pytest-dev/pytest-describe/blob/main/LICENSE
+
+
+—----------
+This Software contains code from the following open source projects, licensed under the Apache 2.0 license:
+
+apache/spark - https://github.com/apache/spark
+Copyright 2014 and onwards The Apache Software Foundation.
+License - https://github.com/apache/spark/blob/master/LICENSE
+Notice - https://github.com/apache/spark/blob/master/NOTICE
