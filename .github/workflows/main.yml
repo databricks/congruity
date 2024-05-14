@@ -27,7 +27,5 @@ jobs:
           key: venv-${{ hashFiles('poetry.lock') }}
       - name: Install the project dependencies
         run: poetry install
-      - name: PySpark Sanity
-        run:
       - name: Run the automated tests (for example)
         run: poetry run pytest -v
