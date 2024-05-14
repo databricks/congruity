@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from congruity.json_conversion import to_json_conversion
+from congruity.rdd_adapter import adapt_to_rdd
 
 _monkey_patch_complete = False
 
@@ -24,8 +25,11 @@ def monkey_patch_spark():
         return
     from pyspark.sql.connect.dataframe import DataFrame
 
-    # Register all of the monkey patches here
+    # Register all the monkey patches here.
     DataFrame.toJSON = to_json_conversion
+
+    # Patch properties.
+    setattr(DataFrame, "rdd", property(adapt_to_rdd))
 
     _monkey_patch_complete = True
     return

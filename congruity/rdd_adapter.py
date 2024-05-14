@@ -13,19 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING, Iterable
 
+import pyarrow as pa
+from pyarrow import RecordBatch
 from pyspark import Row, RDD
-from pyspark.cloudpickle import loads
+import pyspark.sql.types as sqltypes
+from pyspark.cloudpickle import loads, dumps
 
 if TYPE_CHECKING:
     from pyspark.sql import DataFrame
+
+
+def adapt_to_rdd(self: "DataFrame") -> "RDDAdapter":
+    return RDDAdapter(self)
 
 
 class RDDAdapter:
     """This class implements the RDD methods of a PySpark DataFrame, but using the
     existing DataFrame operators. This is a workaround for the fact that Spark Connect
     does not support RDD operations"""
+
+    BIN_SCHEMA = sqltypes.StructType(
+        [sqltypes.StructField("__bin_field__", sqltypes.BinaryType(), True, {"serde": "true"})]
+    )
+
+    PA_SCHEMA = pa.schema([pa.field("__bin_field__", pa.binary(), True, {"serde": "true"})])
 
     def __init__(self, df: "DataFrame", first_field: bool = False):
         self._df = df
@@ -34,18 +47,11 @@ class RDDAdapter:
     def collect(self):
         data = self._df.collect()
         if self._first_field:
+            assert len(self._df.schema.fields) == 1
             return [self._unnest_data(row[0]) for row in data]
         return data
 
     def _unnest_data(self, data: Any) -> Any:
-        if isinstance(data, int):
-            return data
-        if isinstance(data, float):
-            return data
-        if isinstance(data, str):
-            return data
-        if isinstance(data, bool):
-            return data
         if isinstance(data, Row):
             return data.asDict(recursive=True)
         if isinstance(data, bytearray):
@@ -62,3 +68,25 @@ class RDDAdapter:
         return self._df
 
     toDF.__doc__ = RDD.toDF.__doc__
+
+    def map(self, f, preservePartitioning=None) -> "RDDAdapter":
+        needs_conversion = self._first_field
+        schema = RDDAdapter.PA_SCHEMA
+
+        def mapper(iter: Iterable[RecordBatch]):
+            for b in iter:
+                result = []
+                rows = b.to_pylist()
+                for r in rows:
+                    if needs_conversion:
+                        val = loads(r["__bin_field__"])
+                    else:
+                        val = Row(**r)
+                    result.append({"__bin_field__": dumps(f(val))})
+                yield RecordBatch.from_pylist(result, schema=schema)
+
+        result = self._df.mapInArrow(mapper, RDDAdapter.BIN_SCHEMA)
+        assert len(result.schema.fields) == 1
+        return RDDAdapter(result, True)
+
+    map.__doc__ = RDD.map.__doc__
