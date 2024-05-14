@@ -56,7 +56,3 @@ line-length = 100
 target-version = ['py38']
 include = '\.pyi?$'
 extend-exclude = 'cloudpickle|error_classes.py'
-
-[virtualenvs]
-create = true
-in-project = true
