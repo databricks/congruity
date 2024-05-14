@@ -45,7 +45,7 @@ def spark_connect_starter() -> subprocess.Popen:
         stdout=subprocess.PIPE,
     )
     # Try to connect on port 15002 until it is ready:
-    check_port_availability("localhost", 15002, 10)
+    check_port_availability("localhost", 15002, 90)
     time.sleep(1)
     assert pid.poll() is None
     return pid
