@@ -14,9 +14,47 @@
 # limitations under the License.
 
 import pytest
+import subprocess
+
+import socket
+import time
 
 
-@pytest.fixture(scope="module", params=["classic", "connect"])
+def check_port_availability(host: str, port: int, timeout: int):
+    start_time = time.time()
+    while True:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex((host, port))
+        if result == 0:
+            sock.close()
+            break
+        else:
+            sock.close()
+            if time.time() - start_time > timeout:
+                raise Exception(
+                    "Could not connect to port {} after {} seconds".format(port, timeout)
+                )
+        time.sleep(1)
+
+
+def spark_connect_starter() -> subprocess.Popen:
+    pid = subprocess.Popen(
+        ["spark-submit --class org.apache.spark.sql.connect.service.SparkConnectServer --packages org.apache.spark:spark-connect_2.12:3.5.0"],
+        shell=True,
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+    )
+    # Try to connect on port 15002 until it is ready:
+    check_port_availability("localhost", 15002, 90)
+    time.sleep(1)
+    assert pid.poll() is None
+    return pid
+
+
+@pytest.fixture(scope="session", params=[
+    #"classic",
+    "connect"])
 def spark_session(request):
     if request.param == "classic":
         import os
@@ -29,8 +67,10 @@ def spark_session(request):
         yield spark
         spark.sparkContext.stop()
     else:
+        pid = spark_connect_starter()
         from pyspark.sql.connect.session import SparkSession as RSS
 
         spark = RSS.builder.remote("sc://localhost").create()
         yield spark
         spark.stop()
+        pid.terminate()
