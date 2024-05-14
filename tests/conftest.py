@@ -40,7 +40,7 @@ def check_port_availability(host: str, port: int, timeout: int):
 
 def spark_connect_starter() -> subprocess.Popen:
     pid = subprocess.Popen(
-        ["pyspark --remote local --packages org.apache.spark:spark-connect_2.12:3.5.0"],
+        ["spark-submit --class org.apache.spark.sql.connect.service.SparkConnectServer --packages org.apache.spark:spark-connect_2.12:3.5.0"],
         shell=True,
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
