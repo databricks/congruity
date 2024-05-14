@@ -52,6 +52,8 @@ class RDDAdapter:
         return data
 
     def _unnest_data(self, data: Any) -> Any:
+        if isinstance(data, str):
+            return data
         if isinstance(data, Row):
             return data.asDict(recursive=True)
         if isinstance(data, bytearray):
