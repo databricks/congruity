@@ -1,9 +1,8 @@
 name: CI
-
 on:
   push:
     branches:
-    - '**'
+      - '**'
 
 jobs:
   call-ci:
