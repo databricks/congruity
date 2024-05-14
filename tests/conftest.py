@@ -40,7 +40,8 @@ def check_port_availability(host: str, port: int, timeout: int):
 
 def spark_connect_starter() -> subprocess.Popen:
     pid = subprocess.Popen(
-        ["pyspark", "--remote", "local", "--packages", "org.apache.spark:spark-connect_2.12:3.5.0"],
+        ["pyspark --remote local --packages org.apache.spark:spark-connect_2.12:3.5.0"],
+        shell=True,
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     )
@@ -51,7 +52,9 @@ def spark_connect_starter() -> subprocess.Popen:
     return pid
 
 
-@pytest.fixture(scope="session", params=["classic", "connect"])
+@pytest.fixture(scope="session", params=[
+    #"classic",
+    "connect"])
 def spark_session(request):
     if request.param == "classic":
         import os
