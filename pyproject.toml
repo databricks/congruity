@@ -14,7 +14,7 @@
 # limitations under the License.
 
 [tool.poetry]
-name = "congruity"
+name = "spark-congruity"
 version = "0.0.1"
 description = ""
 authors = ["Matthew Powers <matthewkevinpowers@gmail.com>", "Martin Grund <martin@databricks.com>"]
