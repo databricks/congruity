@@ -20,12 +20,23 @@ import socket
 import time
 
 
-def check_port_availability(host: str, port: int, timeout: int):
+def _check_port_availability(port: int, timeout: int):
+    """
+    Check if a port is available for connection. If it is not available after the timeout,
+    raise an exception.
+
+    Parameters
+    ----------
+    port : int
+        The port to connect to.
+    timeout : int
+        The maximum time to wait for the port to become available.
+    """
     start_time = time.time()
     while True:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
-        result = sock.connect_ex((host, port))
+        result = sock.connect_ex(("localhost", port))
         if result == 0:
             sock.close()
             break
@@ -38,23 +49,24 @@ def check_port_availability(host: str, port: int, timeout: int):
         time.sleep(1)
 
 
-def spark_connect_starter() -> subprocess.Popen:
+def _spark_connect_starter() -> subprocess.Popen:
     pid = subprocess.Popen(
-        ["spark-submit --class org.apache.spark.sql.connect.service.SparkConnectServer --packages org.apache.spark:spark-connect_2.12:3.5.0"],
+        [
+            "spark-submit --class org.apache.spark.sql.connect.service.SparkConnectServer"
+            " --packages org.apache.spark:spark-connect_2.12:3.5.0"
+        ],
         shell=True,
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
     )
     # Try to connect on port 15002 until it is ready:
-    check_port_availability("localhost", 15002, 90)
+    _check_port_availability(15002, 90)
     time.sleep(1)
     assert pid.poll() is None
     return pid
 
 
-@pytest.fixture(scope="session", params=[
-    #"classic",
-    "connect"])
+@pytest.fixture(scope="session", params=["classic", "connect"])
 def spark_session(request):
     if request.param == "classic":
         import os
@@ -67,7 +79,7 @@ def spark_session(request):
         yield spark
         spark.sparkContext.stop()
     else:
-        pid = spark_connect_starter()
+        pid = _spark_connect_starter()
         from pyspark.sql.connect.session import SparkSession as RSS
 
         spark = RSS.builder.remote("sc://localhost").create()
