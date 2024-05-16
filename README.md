@@ -51,7 +51,13 @@ data = [("Java", "20000"), ("Python", "100000"), ("Scala", "3000")]
 spark.sparkContext.parallelize(data).toDF()
 ```
 
-## Whats supported?
+## Contributing
+
+We very much welcome contributions to this project. The easiest way to start is to pick any of
+the below RDD or SparkContext methods and implement the compatibility layer. Once you have done
+that open a pull request and we will review it.
+
+## What's supported?
 
 ### RDD
 
