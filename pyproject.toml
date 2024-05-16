@@ -49,7 +49,7 @@ pyspark = {extras = ["connect"], version = "3.5.0"}
 
 
 [tool.poetry.group.dev.dependencies]
-black = "23.9.1"
+black = "24.3.0"
 
 [build-system]
 requires = ["poetry-core"]
