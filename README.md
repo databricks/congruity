@@ -20,7 +20,7 @@ we do not aim to achieve the same performance as using some of the native RDD AP
 Spark JVM & Spark Connect compatibility library.
 
 ```shell
-pip install congruity
+pip install spark-congruity
 ```
 
 ```python

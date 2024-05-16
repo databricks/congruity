@@ -13,28 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from congruity.json_conversion import to_json_conversion
-from congruity.rdd_adapter import adapt_to_rdd
-from congruity.spark_context_adapter import adapt_to_spark_context
 
-_monkey_patch_complete = False
+class SparkContextAdapter:
+    pass
 
 
-def monkey_patch_spark():
-    global _monkey_patch_complete
-    if _monkey_patch_complete:
-        return
-    from pyspark.sql.connect.dataframe import DataFrame
-
-    # Register all the monkey patches here.
-    DataFrame.toJSON = to_json_conversion
-
-    # Patch properties.
-    setattr(DataFrame, "rdd", property(adapt_to_rdd))
-    setattr(DataFrame, "sparkContext", property(adapt_to_spark_context))
-
-    _monkey_patch_complete = True
-    return
-
-
-monkey_patch_spark()
+def adapt_to_spark_context(self):
+    return SparkContextAdapter(self)

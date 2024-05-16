@@ -13,19 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from congruity import monkey_patch_spark
 from pyspark.sql import SparkSession
 
 
-class FakeSparkContext:
-    def parallelize(self, data):
-        return FakeParallelizedCollection(data)
-
-
-class FakeParallelizedCollection:
-    def __init__(self, data):
-        self.data = data
-
-
-def skip_test_spark_context_monkey():
+def skip_test_spark_context(spark_session: "SparkSession"):
+    monkey_patch_spark()
     data = [("Java", "20000"), ("Python", "100000"), ("Scala", "3000")]
     # spark.sparkContext.parallelize(data).toDF()
