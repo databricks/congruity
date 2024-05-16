@@ -47,6 +47,10 @@ chispa = "0.9.4"
 pytest-describe = "^2"
 pyspark = {extras = ["connect"], version = "3.5.0"}
 
+
+[tool.poetry.group.dev.dependencies]
+black = "23.9.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
