@@ -92,6 +92,3 @@ def test_take(spark_session: "SparkSession"):
 
     vals = df.rdd.map(lambda x: (x[0], 99)).take(3)
     assert vals == [(0, 99), (1, 99), (2, 99)]
-
-
-g
