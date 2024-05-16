@@ -17,7 +17,15 @@ from congruity import monkey_patch_spark
 from pyspark.sql import SparkSession
 
 
-def skip_test_spark_context(spark_session: "SparkSession"):
+def test_spark_context(spark_session: "SparkSession"):
     monkey_patch_spark()
     data = [("Java", "20000"), ("Python", "100000"), ("Scala", "3000")]
-    # spark.sparkContext.parallelize(data).toDF()
+    result = spark_session.sparkContext.parallelize(data).toDF()
+    assert result.count() == 3
+
+
+def test_spark_context_parallelize(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    data = [("Java", "20000"), ("Python", "100000"), ("Scala", "3000")]
+    result = spark_session.sparkContext.parallelize(data).map(lambda x: x[1]).map(lambda x: int(x)).collect()
+    assert result == [20000, 100000, 3000]
