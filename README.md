@@ -1,5 +1,8 @@
 # congruity
 
+[![GitHub Actions Build](https://github.com/databricks/congruity/actions/workflows/main.yml/badge.svg)](https://github.com/databricks/congruity/actions/workflows/main.yml)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/spark-congruity?period=month&units=international_system&left_color=black&right_color=orange&left_text=PyPI%20downloads)](https://pypi.org/project/spark-congruity/)
+
 In many ways, the migration from using classic Spark applications using the full
 power and flexibility to be using only the Spark Connect compatible DataFrame API
 can be challenging.
