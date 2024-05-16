@@ -84,3 +84,14 @@ def test_to_df_no_schema(spark_session: "SparkSession"):
     row = vals[0]
     assert row._1 == 0
     assert row._2 == "99"
+
+
+def test_take(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    df = spark_session.range(10)
+
+    vals = df.rdd.map(lambda x: (x[0], 99)).take(3)
+    assert vals == [(0, 99), (1, 99), (2, 99)]
+
+
+g
