@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import tempfile
 
 import pytest
 import subprocess
@@ -50,23 +51,32 @@ def _check_port_availability(port: int, timeout: int):
 
 
 def _spark_connect_starter() -> subprocess.Popen:
+    log_file = tempfile.NamedTemporaryFile(prefix="spark_connect_", suffix=".log", delete=False)
     pid = subprocess.Popen(
         [
             "spark-submit --class org.apache.spark.sql.connect.service.SparkConnectServer"
             " --packages org.apache.spark:spark-connect_2.12:3.5.0"
         ],
         shell=True,
-        stderr=subprocess.PIPE,
-        stdout=subprocess.PIPE,
+        stderr=log_file,
+        stdout=log_file,
     )
     # Try to connect on port 15002 until it is ready:
     _check_port_availability(15002, 90)
     time.sleep(1)
     assert pid.poll() is None
-    return pid
+    return pid, log_file.name
 
 
-@pytest.fixture(scope="session", params=["classic", "connect"])
+@pytest.fixture(
+    scope="session",
+    params=[
+        # Classic Spark Tests
+        "classic",
+        # Only with Connect
+        "connect",
+    ],
+)
 def spark_session(request):
     if request.param == "classic":
         import os
@@ -79,10 +89,12 @@ def spark_session(request):
         yield spark
         spark.sparkContext.stop()
     else:
-        pid = _spark_connect_starter()
+        pid, name = _spark_connect_starter()
+        print(name)
         from pyspark.sql.connect.session import SparkSession as RSS
 
         spark = RSS.builder.remote("sc://localhost").create()
         yield spark
+        time.sleep(1)
         spark.stop()
         pid.terminate()

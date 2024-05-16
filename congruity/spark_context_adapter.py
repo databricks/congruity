@@ -15,7 +15,8 @@
 
 
 class SparkContextAdapter:
-    pass
+    def parallelize(self, data):
+        pass
 
 
 def adapt_to_spark_context(self):
