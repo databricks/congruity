@@ -32,7 +32,6 @@ import congruity
 Here is code that works on Spark JVM:
 
 ```python
-import congruity  # noqa: F401
 from pyspark.sql import SparkSession
 
 spark = SparkSession.builder.remote("sc://localhost").getOrCreate()
