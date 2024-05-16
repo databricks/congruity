@@ -30,7 +30,9 @@ class SparkContextAdapter:
     def parallelize(self, data: Any, slices: Optional[int] = None) -> "RDDAdapter":
         # Create the binary DF from the data
         serialized = map(lambda x: dumps(x), data)
-        return RDDAdapter(self._spark.createDataFrame(serialized, RDDAdapter.BIN_SCHEMA), first_field=True)
+        return RDDAdapter(
+            self._spark.createDataFrame(serialized, RDDAdapter.BIN_SCHEMA), first_field=True
+        )
 
 
 def adapt_to_spark_context(self: DataFrame) -> SparkContextAdapter:
