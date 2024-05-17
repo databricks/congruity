@@ -117,7 +117,7 @@ def test_count(spark_session: "SparkSession"):
     assert vals == 10
 
 
-@pytest.skip("Fails in CI")
+@pytest.mark.skip("Fails in CI")
 def test_rdd_fold(spark_session: "SparkSession"):
     monkey_patch_spark()
     df = spark_session.range(10)
@@ -126,7 +126,7 @@ def test_rdd_fold(spark_session: "SparkSession"):
     assert vals == 45
 
 
-@pytest.skip("Fails in CI")
+@pytest.mark.skip("Fails in CI")
 def test_rdd_sum(spark_session: "SparkSession"):
     monkey_patch_spark()
     df = spark_session.range(10)
