@@ -114,3 +114,19 @@ def test_count(spark_session: "SparkSession"):
 
     vals = df.rdd.count()
     assert vals == 10
+
+
+def test_rdd_fold(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    df = spark_session.range(10)
+
+    vals = df.rdd.map(lambda x: x[0]).fold(0, lambda x, y: x + y)
+    assert vals == 45
+
+
+def test_rdd_sum(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    df = spark_session.range(10)
+
+    vals = df.rdd.map(lambda x: x[0]).sum()
+    assert vals == 45
