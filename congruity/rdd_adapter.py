@@ -274,6 +274,16 @@ class RDDAdapter:
 
     fold.__doc__ = RDD.fold.__doc__
 
+    def keys(self) -> "RDDAdapter":
+        return self.map(lambda x: x[0])
+
+    keys.__doc__ = RDD.keys.__doc__
+
+    def values(self) -> "RDDAdapter":
+        return self.map(lambda x: x[1])
+
+    values.__doc__ = RDD.values.__doc__
+
     class WrappedIterator(Iterable):
         """This is a helper class that wraps the iterator of RecordBatches as returned by
         mapInArrow and converts it into an iterator of the underlaying values."""

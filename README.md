@@ -106,7 +106,7 @@ that open a pull request and we will review it.
 | isEmpty                           | :x:                |                                                                   |
 | isLocallyCheckpointed             | :x:                |                                                                   |
 | join                              | :x:                |                                                                   |
-| keys                              | :x:                |                                                                   |
+| keys                              | :white_check_mark: |                                                                   |
 | leftOuterJoin                     | :x:                |                                                                   |
 | localCheckpoint                   | :x:                |                                                                   |
 | lookup                            | :x:                |                                                                   |
@@ -159,7 +159,7 @@ that open a pull request and we will review it.
 | treeReduce                        | :x:                |                                                                   |
 | union                             | :x:                |                                                                   |
 | unpersist                         | :x:                |                                                                   |
-| values                            | :x:                |                                                                   |
+| values                            | :white_check_mark: |                                                                   |
 | variance                          | :x:                |                                                                   |
 | withResources                     | :x:                |                                                                   |
 | zip                               | :x:                |                                                                   |

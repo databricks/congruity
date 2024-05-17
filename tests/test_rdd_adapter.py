@@ -130,3 +130,15 @@ def test_rdd_sum(spark_session: "SparkSession"):
 
     vals = df.rdd.map(lambda x: x[0]).sum()
     assert vals == 45
+
+
+def test_rdd_keys(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize([(1, 2), (3, 4)]).keys()
+    assert rdd.collect() == [1, 3]
+
+
+def test_rdd_values(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize([(1, 2), (3, 4)]).values()
+    assert rdd.collect() == [2, 4]
