@@ -12,8 +12,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import Any, TYPE_CHECKING, Iterable, Optional, Union, no_type_check, Tuple, List, Sized
+import operator
+from functools import reduce
+from typing import (
+    Any,
+    TYPE_CHECKING,
+    Iterable,
+    Optional,
+    Union,
+    no_type_check,
+    Tuple,
+    List,
+    Sized,
+    Callable,
+    T,
+)
 
 import pyarrow as pa
 from pyarrow import RecordBatch
@@ -21,6 +34,7 @@ from pyspark import Row, RDD
 import pyspark.sql.types as sqltypes
 from pyspark.cloudpickle import loads, dumps
 from pyspark.errors import PySparkValueError
+from pyspark.util import fail_on_stopiteration
 
 if TYPE_CHECKING:
     from pyspark.sql import DataFrame
@@ -233,3 +247,84 @@ class RDDAdapter:
         return RDDAdapter(result, True)
 
     map.__doc__ = RDD.map.__doc__
+
+    def count(self) -> int:
+        return self.mapPartitions(lambda i: [sum(1 for _ in i)]).sum()
+
+    count.__doc__ = RDD.count.__doc__
+
+    def sum(self) -> int:
+        return self.mapPartitions(lambda x: [sum(x)]).fold(  # type: ignore[return-value]
+            0, operator.add
+        )
+
+    sum.__doc__ = RDD.sum.__doc__
+
+    def fold(self: "RDDAdapter", zeroValue: T, op: Callable[[T, T], T]) -> T:
+        op = fail_on_stopiteration(op)
+
+        def func(iterator: Iterable[T]) -> Iterable[T]:
+            acc = zeroValue
+            for obj in iterator:
+                acc = op(acc, obj)
+            yield acc
+
+        vals = self.mapPartitions(func).collect()
+        return reduce(op, vals, zeroValue)
+
+    fold.__doc__ = RDD.fold.__doc__
+
+    class WrappedIterator(Iterable):
+        """This is a helper class that wraps the iterator of RecordBatches as returned by
+        mapInArrow and converts it into an iterator of the underlaying values."""
+
+        def __init__(self, iter: Iterable[RecordBatch], first_field=False):
+            self._first_field = first_field
+            self._iter = iter
+            self._current_batch = None
+            self._current_idx = 0
+            self._done = False
+
+        def __next__(self):
+            if self._current_batch is None or self._current_idx >= len(self._current_batch):
+                self._current_idx = 0
+                v: RecordBatch = next(self._iter)
+                if self._first_field:
+                    self._current_batch = [loads(x[0].as_py()) for x in v]
+                else:
+                    self._current_batch = [list(x.values()) for x in v.to_pylist()]
+
+            result = self._current_batch[self._current_idx]
+            self._current_idx += 1
+            return result
+
+        def __iter__(self):
+            return self
+
+    def mapPartitions(self, f, preservesPartitioning=False) -> "RDDAdapter":
+        schema = RDDAdapter.PA_SCHEMA
+        needs_conversion = self._first_field
+        max_rows_per_batch = 1000
+
+        def mapper(iter: Iterable[RecordBatch]):
+            # the function that is passed to mapPartitions works the same way as the mapper. But
+            # when next(iter) is called we have to send the converted batch instead of the raw
+            # data.
+            wrapped = RDDAdapter.WrappedIterator(iter, needs_conversion)
+            result = []
+            for batch in f(wrapped):
+                result.append({"__bin_field__": dumps(batch)})
+                if len(result) > max_rows_per_batch:
+                    yield RecordBatch.from_pylist(result, schema=schema)
+                    result = []
+
+            if len(result) > 0:
+                yield RecordBatch.from_pylist(result, schema=schema)
+
+        # MapInArrow is effectively mapPartitions, but streams the rows as batches to the RDD,
+        # we leverage this fact here and build wrappers for that.
+        result = self._df.mapInArrow(mapper, RDDAdapter.BIN_SCHEMA)
+        assert len(result.schema.fields) == 1
+        return RDDAdapter(result, True)
+
+    mapPartitions.__doc__ = RDD.mapPartitions.__doc__

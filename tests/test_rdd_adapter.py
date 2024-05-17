@@ -12,6 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from collections.abc import Iterator
+
 from pyspark import Row
 
 from congruity import monkey_patch_spark
@@ -92,3 +94,23 @@ def test_take(spark_session: "SparkSession"):
 
     vals = df.rdd.map(lambda x: (x[0], 99)).take(3)
     assert vals == [(0, 99), (1, 99), (2, 99)]
+
+
+def test_map_partitions(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    df = spark_session.range(10)
+
+    def f(it):
+        for x in it:
+            yield x[0] * 2
+
+    vals = df.rdd.mapPartitions(f).collect()
+    assert vals == [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+
+
+def test_count(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    df = spark_session.range(10)
+
+    vals = df.rdd.count()
+    assert vals == 10

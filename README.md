@@ -79,7 +79,7 @@ that open a pull request and we will review it.
 | collectAsMap                      | :x:                |                                                                   |
 | collectWithJobGroup               | :x:                |                                                                   |
 | combineByKey                      | :x:                |                                                                   |
-| count                             | :x:                |                                                                   |
+| count                             | :white_check_mark: |                                                                   |
 | countApprox                       | :x:                |                                                                   |
 | countByKey                        | :x:                |                                                                   |
 | countByValue                      | :x:                |                                                                   |
@@ -87,7 +87,7 @@ that open a pull request and we will review it.
 | filter                            | :x:                |                                                                   |
 | first                             | :white_check_mark: |                                                                   |
 | flatMap                           | :x:                |                                                                   |
-| fold                              | :x:                |                                                                   |
+| fold                              | :white_check_mark: | First version                                                     |
 | foreach                           | :x:                |                                                                   |
 | foreachPartition                  | :x:                |                                                                   |
 | fullOuterJoin                     | :x:                |                                                                   |
@@ -111,7 +111,7 @@ that open a pull request and we will review it.
 | localCheckpoint                   | :x:                |                                                                   |
 | lookup                            | :x:                |                                                                   |
 | map                               | :white_check_mark: |                                                                   |
-| mapPartitions                     | :x:                |                                                                   |
+| mapPartitions                     | :white_check_mark: | First version, based on mapInArrow.                               |
 | mapPartitionsWithIndex            | :x:                |                                                                   |
 | mapPartitionsWithSplit            | :x:                |                                                                   |
 | mapValues                         | :x:                |                                                                   |
@@ -146,7 +146,7 @@ that open a pull request and we will review it.
 | stdev                             | :x:                |                                                                   |
 | subtract                          | :x:                |                                                                   |
 | substractByKey                    | :x:                |                                                                   |
-| sum                               | :x:                |                                                                   |
+| sum                               | :white_check_mark: | First version.                                                    |
 | sumApprox                         | :x:                |                                                                   |
 | take                              | :white_check_mark: | Ordering might not be guaranteed in the same way as it is in RDD. |
 | takeOrdered                       | :x:                |                                                                   |
