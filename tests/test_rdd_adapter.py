@@ -117,7 +117,6 @@ def test_count(spark_session: "SparkSession"):
     assert vals == 10
 
 
-@pytest.mark.skip("Fails in CI")
 def test_rdd_fold(spark_session: "SparkSession"):
     monkey_patch_spark()
     df = spark_session.range(10)
@@ -125,8 +124,15 @@ def test_rdd_fold(spark_session: "SparkSession"):
     vals = df.rdd.map(lambda x: x[0]).fold(0, lambda x, y: x + y)
     assert vals == 45
 
+    df = (
+        spark_session.range(10000)
+        .repartition(1)
+        .rdd.map(lambda x: x[0])
+        .fold(0, lambda x, y: x + y)
+    )
+    assert df == 49995000
 
-@pytest.mark.skip("Fails in CI")
+
 def test_rdd_sum(spark_session: "SparkSession"):
     monkey_patch_spark()
     df = spark_session.range(10)

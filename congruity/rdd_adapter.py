@@ -118,11 +118,6 @@ class RDDAdapter:
             return o
         raise NotImplementedError(f"Collecting Data type {type(data)} is not supported")
 
-    def count(self):
-        return self._df.count()
-
-    count.__doc__ = RDD.count.__doc__
-
     def toDF(
         self,
         schema: Optional[Union[sqltypes.AtomicType, sqltypes.StructType, str]] = None,
@@ -288,9 +283,9 @@ class RDDAdapter:
         """This is a helper class that wraps the iterator of RecordBatches as returned by
         mapInArrow and converts it into an iterator of the underlaying values."""
 
-        def __init__(self, iter: Iterable[RecordBatch], first_field=False):
+        def __init__(self, i: Iterable[RecordBatch], first_field=False):
             self._first_field = first_field
-            self._iter = iter
+            self._iter = i
             self._current_batch = None
             self._current_idx = 0
             self._done = False
@@ -300,7 +295,7 @@ class RDDAdapter:
                 self._current_idx = 0
                 v: RecordBatch = next(self._iter)
                 if self._first_field:
-                    self._current_batch = [loads(x[0].as_py()) for x in v]
+                    self._current_batch = [loads(x["__bin_field__"]) for x in v.to_pylist()]
                 else:
                     self._current_batch = [list(x.values()) for x in v.to_pylist()]
 
