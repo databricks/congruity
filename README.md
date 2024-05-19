@@ -95,7 +95,7 @@ that open a pull request and we will review it.
 | getNumPartitions                  | :x:                |                                                                   |
 | getResourceProfile                | :x:                |                                                                   |
 | getStorageLevel                   | :x:                |                                                                   |
-| glom                              | :x:                |                                                                   |
+| glom                              | :white_check_mark: |                                                                   |
 | groupBy                           | :x:                |                                                                   |
 | groupByKey                        | :x:                |                                                                   |
 | groupWith                         | :x:                |                                                                   |
@@ -106,6 +106,7 @@ that open a pull request and we will review it.
 | isEmpty                           | :x:                |                                                                   |
 | isLocallyCheckpointed             | :x:                |                                                                   |
 | join                              | :x:                |                                                                   |
+| keyBy                             | :white_check_mark: |                                                                   |
 | keys                              | :white_check_mark: |                                                                   |
 | leftOuterJoin                     | :x:                |                                                                   |
 | localCheckpoint                   | :x:                |                                                                   |

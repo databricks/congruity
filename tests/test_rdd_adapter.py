@@ -151,3 +151,26 @@ def test_rdd_values(spark_session: "SparkSession"):
     monkey_patch_spark()
     rdd = spark_session.sparkContext.parallelize([(1, 2), (3, 4)]).values()
     assert rdd.collect() == [2, 4]
+
+
+def test_rdd_glom(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10), 2).glom().collect()
+    assert len(rdd) == 2
+
+
+def test_rdd_key_by(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10)).keyBy(lambda x: x * 2)
+    assert rdd.collect() == [
+        (0, 0),
+        (2, 1),
+        (4, 2),
+        (6, 3),
+        (8, 4),
+        (10, 5),
+        (12, 6),
+        (14, 7),
+        (16, 8),
+        (18, 9),
+    ]

@@ -25,8 +25,20 @@ from typing import (
     List,
     Sized,
     Callable,
-    T,
+    TypeVar,
+    Hashable,
+    Generic,
 )
+
+T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
+U = TypeVar("U")
+K = TypeVar("K", bound=Hashable)
+V = TypeVar("V")
+V1 = TypeVar("V1")
+V2 = TypeVar("V2")
+V3 = TypeVar("V3")
+
 
 import pyarrow as pa
 from pyarrow import RecordBatch
@@ -88,7 +100,7 @@ def _convert_spark_schema_to_pyarrow_schema(schema: sqltypes.StructType) -> pa.S
     )
 
 
-class RDDAdapter:
+class RDDAdapter(Generic[T_co]):
     """This class implements the RDD methods of a PySpark DataFrame, but using the
     existing DataFrame operators. This is a workaround for the fact that Spark Connect
     does not support RDD operations"""
@@ -103,7 +115,7 @@ class RDDAdapter:
         self._df = df
         self._first_field = first_field
 
-    def collect(self):
+    def collect(self: "RDDAdapter[T]") -> List[T]:
         data = self._df.collect()
         if self._first_field:
             assert len(self._df.schema.fields) == 1
@@ -211,17 +223,19 @@ class RDDAdapter:
             raise NotImplementedError("Sampling ratio is not supported")
         return schema
 
-    def first(self):
+    def first(self: "RDDAdapter[T]") -> T:
         return RDDAdapter(self._df.limit(1), self._first_field).collect()[0]
 
     first.__doc__ = RDD.first.__doc__
 
-    def take(self, num: int):
+    def take(self: "RDDAdapter[T]", num: int) -> List[T]:
         return RDDAdapter(self._df.limit(num), self._first_field).collect()
 
     take.__doc__ = RDD.take.__doc__
 
-    def map(self, f, preservePartitioning=None) -> "RDDAdapter":
+    def map(
+        self: "RDDApapter[T]", f: Callable[[T], U], preservePartitioning=None
+    ) -> "RDDAdapter[U]":
         needs_conversion = self._first_field
         schema = RDDAdapter.PA_SCHEMA
 
@@ -248,14 +262,14 @@ class RDDAdapter:
 
     count.__doc__ = RDD.count.__doc__
 
-    def sum(self) -> int:
+    def sum(self: "RDDAdapter") -> int:
         return self.mapPartitions(lambda x: [sum(x)]).fold(  # type: ignore[return-value]
             0, operator.add
         )
 
     sum.__doc__ = RDD.sum.__doc__
 
-    def fold(self: "RDDAdapter", zeroValue: T, op: Callable[[T, T], T]) -> T:
+    def fold(self: "RDDAdapter[T]", zeroValue: T, op: Callable[[T, T], T]) -> T:
         op = fail_on_stopiteration(op)
 
         def func(iterator: Iterable[T]) -> Iterable[T]:
@@ -269,15 +283,28 @@ class RDDAdapter:
 
     fold.__doc__ = RDD.fold.__doc__
 
-    def keys(self) -> "RDDAdapter":
+    def keys(self: "RDDAdapter[Tuple[K, V]]") -> "RDDAdapter[K]":
         return self.map(lambda x: x[0])
 
     keys.__doc__ = RDD.keys.__doc__
 
-    def values(self) -> "RDDAdapter":
+    def values(self: "RDDAdapter[Tuple[K, V]]") -> "RDDAdapter[V]":
         return self.map(lambda x: x[1])
 
     values.__doc__ = RDD.values.__doc__
+
+    def glom(self: "RDDAdapter[T]") -> "RDDAdapter[List[T]]":
+        def func(iterator: Iterable[T]) -> Iterable[List[T]]:
+            yield list(iterator)
+
+        return self.mapPartitions(func)
+
+    glom.__doc__ = RDD.glom.__doc__
+
+    def keyBy(self: "RDDAdapter[T]", f: Callable[[T], K]) -> "RDDAdapter[Tuple[K, T]]":
+        return self.map(lambda x: (f(x), x))
+
+    keyBy.__doc__ = RDD.keyBy.__doc__
 
     class WrappedIterator(Iterable):
         """This is a helper class that wraps the iterator of RecordBatches as returned by
@@ -306,7 +333,9 @@ class RDDAdapter:
         def __iter__(self):
             return self
 
-    def mapPartitions(self, f, preservesPartitioning=False) -> "RDDAdapter":
+    def mapPartitions(
+        self, f: Callable[[Iterable[T]], Iterable[U]], preservesPartitioning=False
+    ) -> "RDDAdapter[U]":
         schema = RDDAdapter.PA_SCHEMA
         needs_conversion = self._first_field
         max_rows_per_batch = 1000

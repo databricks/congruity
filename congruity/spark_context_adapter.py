@@ -28,10 +28,15 @@ class SparkContextAdapter:
         self._spark = spark
 
     def parallelize(self, data: Any, slices: Optional[int] = None) -> "RDDAdapter":
+        # TODO - the slices argument is not ideal here.
         # Create the binary DF from the data
         serialized = map(lambda x: dumps(x), data)
+        base_df = self._spark.createDataFrame(serialized, RDDAdapter.BIN_SCHEMA)
+        if slices is not None:
+            base_df = base_df.repartition(slices)
         return RDDAdapter(
-            self._spark.createDataFrame(serialized, RDDAdapter.BIN_SCHEMA), first_field=True
+            base_df,
+            first_field=True,
         )
 
 
