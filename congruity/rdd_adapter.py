@@ -290,6 +290,24 @@ class RDDAdapter(Generic[T_co]):
     aggregate = RDD.aggregate
     aggregate.__doc__ = RDD.aggregate.__doc__
 
+    max = RDD.max
+    max.__doc__ = RDD.max.__doc__
+
+    min = RDD.min
+    min.__doc__ = RDD.min.__doc__
+
+    filter = RDD.filter
+    filter.__doc__ = RDD.filter.__doc__
+
+    histogram = RDD.histogram
+    histogram.__doc__ = RDD.histogram.__doc__
+
+    mean = RDD.mean
+    mean.__doc__ = RDD.mean.__doc__
+
+    variance = RDD.variance
+    variance.__doc__ = RDD.variance.__doc__
+
     class WrappedIterator(Iterable):
         """This is a helper class that wraps the iterator of RecordBatches as returned by
         mapInArrow and converts it into an iterator of the underlaying values."""

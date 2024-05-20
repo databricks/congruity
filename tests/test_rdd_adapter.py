@@ -246,3 +246,37 @@ def test_rdd_aggregate(spark_session: "SparkSession"):
     # TODO empty
     # res = spark_session.sparkContext.parallelize([]).aggregate((0, 0), seqOp, combOp)
     # assert res == (0, 0)
+
+
+def test_rdd_min(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    df = spark_session.range(10).repartition(1)
+    assert df.rdd.map(lambda x: x[0]).min() == 0
+
+
+def test_rdd_max(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    df = spark_session.range(10).repartition(1)
+    assert df.rdd.map(lambda x: x[0]).max() == 9
+
+
+def test_rdd_histogram(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    assert rdd.histogram(3) == ([0, 3, 6, 9], [3, 3, 4])
+
+
+def test_rdd_filter(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    assert rdd.filter(lambda x: x % 2 == 0).collect() == [0, 2, 4, 6, 8]
+
+def test_rdd_mean(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    assert rdd.mean() == 4.5
+
+def test_rdd_variance(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    assert rdd.variance() == 8.25
