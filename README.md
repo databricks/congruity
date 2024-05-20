@@ -66,7 +66,7 @@ that open a pull request and we will review it.
 
 | RDD                               | API                | Comment                                                           |
 |-----------------------------------|--------------------|-------------------------------------------------------------------|
-| aggregate                         | :x:                |                                                                   |
+| aggregate                         | :white_check_mark: |                                                                   |
 | aggregateByKey                    | :x:                |                                                                   |
 | barrier                           | :x:                |                                                                   |
 | cache                             | :x:                |                                                                   |
@@ -84,7 +84,7 @@ that open a pull request and we will review it.
 | countByKey                        | :x:                |                                                                   |
 | countByValue                      | :x:                |                                                                   |
 | distinct                          | :x:                |                                                                   |
-| filter                            | :x:                |                                                                   |
+| filter                            | :white_check_mark: |                                                                   |
 | first                             | :white_check_mark: |                                                                   |
 | flatMap                           | :x:                |                                                                   |
 | fold                              | :white_check_mark: | First version                                                     |
@@ -99,7 +99,7 @@ that open a pull request and we will review it.
 | groupBy                           | :x:                |                                                                   |
 | groupByKey                        | :x:                |                                                                   |
 | groupWith                         | :x:                |                                                                   |
-| histogram                         | :x:                |                                                                   |
+| histogram                         | :white_check_mark: |                                                                   |
 | id                                | :x:                |                                                                   |
 | intersection                      | :x:                |                                                                   |
 | isCheckpointed                    | :x:                |                                                                   |
@@ -116,10 +116,10 @@ that open a pull request and we will review it.
 | mapPartitionsWithIndex            | :x:                |                                                                   |
 | mapPartitionsWithSplit            | :x:                |                                                                   |
 | mapValues                         | :x:                |                                                                   |
-| max                               | :x:                |                                                                   |
-| mean                              | :x:                |                                                                   |
+| max                               | :white_check_mark: |                                                                   |
+| mean                              | :white_check_mark: |                                                                   |
 | meanApprox                        | :x:                |                                                                   |
-| min                               | :x:                |                                                                   |
+| min                               | :white_check_mark: |                                                                   |
 | name                              | :x:                |                                                                   |
 | partitionBy                       | :x:                |                                                                   |
 | persist                           | :x:                |                                                                   |
@@ -152,7 +152,7 @@ that open a pull request and we will review it.
 | take                              | :white_check_mark: | Ordering might not be guaranteed in the same way as it is in RDD. |
 | takeOrdered                       | :x:                |                                                                   |
 | takeSample                        | :x:                |                                                                   |
-| toDF                              | :x:                |                                                                   |
+| toDF                              | :white_check_mark: |                                                                   |
 | toDebugString                     | :x:                |                                                                   |
 | toLocalIterator                   | :x:                |                                                                   |
 | top                               | :x:                |                                                                   |
