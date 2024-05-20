@@ -12,13 +12,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import operator
 from collections.abc import Iterator
 
+import pyspark.sql.connect.session
 import pytest
 from pyspark import Row
 
 from congruity import monkey_patch_spark
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import IntegerType, StructType, StructField
 
 from pyspark.cloudpickle.cloudpickle import register_pickle_by_value
@@ -109,6 +111,22 @@ def test_map_partitions(spark_session: "SparkSession"):
     assert vals == [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
 
 
+def test_pipelineing_does_only_have_one_job(spark_session: "SparkSession"):
+    if isinstance(spark_session, pyspark.sql.connect.session.SparkSession):
+        monkey_patch_spark()
+        df = spark_session.range(10).repartition(1)
+
+        # Two chained map partitions
+        first = df.rdd.mapPartitions(lambda i: [sum(1 for _ in i)])
+        second = first.mapPartitions(lambda x: [sum(x)])
+
+        import pyspark.sql.connect.plan as plan
+
+        assert isinstance(second._prev_source._plan, plan.Repartition)
+        res = second.collect()
+        assert res == [10]
+
+
 def test_count(spark_session: "SparkSession"):
     monkey_patch_spark()
     df = spark_session.range(10)
@@ -174,3 +192,57 @@ def test_rdd_key_by(spark_session: "SparkSession"):
         (16, 8),
         (18, 9),
     ]
+
+
+def test_rdd_stats(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    stats = rdd.stats()
+    assert stats.count() == 10
+    assert stats.mean() == 4.5
+    assert stats.sum() == 45
+    assert stats.min() == 0
+    assert stats.max() == 9
+    assert stats.stdev() == 2.8722813232690143
+    assert stats.variance() == 8.25
+    assert stats.sampleStdev() == 3.0276503540974917
+    assert stats.sampleVariance() == 9.166666666666666
+
+
+def test_rdd_stddev(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    assert rdd.stdev() == 2.8722813232690143
+
+
+def test_rdd_sample_stddev(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    assert rdd.sampleStdev() == 3.0276503540974917
+
+
+def test_rdd_sample_variance(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    assert rdd.sampleVariance() == 9.166666666666666
+
+
+def test_rdd_variance(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    assert rdd.variance() == 8.25
+
+
+def test_rdd_aggregate(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    assert rdd.aggregate(0, lambda x, y: x + y, lambda x, y: x + y) == 45
+
+    seqOp = lambda x, y: (x[0] + y, x[1] + 1)
+    combOp = lambda x, y: (x[0] + y[0], x[1] + y[1])
+    res = spark_session.sparkContext.parallelize([1, 2, 3, 4]).aggregate((0, 0), seqOp, combOp)
+    assert res == (10, 4)
+
+    # TODO empty
+    # res = spark_session.sparkContext.parallelize([]).aggregate((0, 0), seqOp, combOp)
+    # assert res == (0, 0)
