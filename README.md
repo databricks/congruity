@@ -125,15 +125,15 @@ that open a pull request and we will review it.
 | persist                           | :x:                |                                                                   |
 | pipe                              | :x:                |                                                                   |
 | randomSplit                       | :x:                |                                                                   |
-| reduce                            | :x:                |                                                                   |
+| reduce                            | :white_check_mark: |                                                                   |
 | reduceByKey                       | :x:                |                                                                   |
 | repartition                       | :x:                |                                                                   |
 | repartitionAndSortWithinPartition | :x:                |                                                                   |
 | rightOuterJoin                    | :x:                |                                                                   |
 | sample                            | :x:                |                                                                   |
 | sampleByKey                       | :x:                |                                                                   |
-| sampleStdev                       | :x:                |                                                                   |
-| sampleVariance                    | :x:                |                                                                   |
+| sampleStdev                       | :white_check_mark: |                                                                   |
+| sampleVariance                    | :white_check_mark: |                                                                   |
 | saveAsHadoopDataset               | :x:                |                                                                   |
 | saveAsHadoopFile                  | :x:                |                                                                   |
 | saveAsNewAPIHadoopDataset         | :x:                |                                                                   |
@@ -143,8 +143,8 @@ that open a pull request and we will review it.
 | setName                           | :x:                |                                                                   |
 | sortBy                            | :x:                |                                                                   |
 | sortByKey                         | :x:                |                                                                   |
-| stats                             | :x:                |                                                                   |
-| stdev                             | :x:                |                                                                   |
+| stats                             | :white_check_mark: |                                                                   |
+| stdev                             | :white_check_mark: |                                                                   |
 | subtract                          | :x:                |                                                                   |
 | substractByKey                    | :x:                |                                                                   |
 | sum                               | :white_check_mark: | First version.                                                    |
@@ -161,7 +161,7 @@ that open a pull request and we will review it.
 | union                             | :x:                |                                                                   |
 | unpersist                         | :x:                |                                                                   |
 | values                            | :white_check_mark: |                                                                   |
-| variance                          | :x:                |                                                                   |
+| variance                          | :white_check_mark: |                                                                   |
 | withResources                     | :x:                |                                                                   |
 | zip                               | :x:                |                                                                   |
 | zipWithIndex                      | :x:                |                                                                   |

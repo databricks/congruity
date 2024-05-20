@@ -30,6 +30,9 @@ from typing import (
     Generic,
 )
 
+from pyspark.serializers import CloudPickleSerializer
+from pyspark.statcounter import StatCounter
+
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
 U = TypeVar("U")
@@ -236,75 +239,56 @@ class RDDAdapter(Generic[T_co]):
     def map(
         self: "RDDApapter[T]", f: Callable[[T], U], preservePartitioning=None
     ) -> "RDDAdapter[U]":
-        needs_conversion = self._first_field
-        schema = RDDAdapter.PA_SCHEMA
+        def func(iterator: Iterable[T]) -> Iterable[U]:
+            return map(fail_on_stopiteration(f), iterator)
 
-        def mapper(iter: Iterable[RecordBatch]):
-            for b in iter:
-                result = []
-                rows = b.to_pylist()
-                for r in rows:
-                    if needs_conversion:
-                        val = loads(r["__bin_field__"])
-                    else:
-                        val = Row(**r)
-                    result.append({"__bin_field__": dumps(f(val))})
-                yield RecordBatch.from_pylist(result, schema=schema)
-
-        result = self._df.mapInArrow(mapper, RDDAdapter.BIN_SCHEMA)
-        assert len(result.schema.fields) == 1
-        return RDDAdapter(result, True)
+        # This is a diff to the regular map implementation because we don't have
+        # access to mapPartitionsWithIndex
+        return self.mapPartitions(func, preservePartitioning)
 
     map.__doc__ = RDD.map.__doc__
 
-    def count(self) -> int:
-        return self.mapPartitions(lambda i: [sum(1 for _ in i)]).sum()
-
+    count = RDD.count
     count.__doc__ = RDD.count.__doc__
 
-    def sum(self: "RDDAdapter") -> int:
-        return self.mapPartitions(lambda x: [sum(x)]).fold(  # type: ignore[return-value]
-            0, operator.add
-        )
-
+    sum = RDD.sum
     sum.__doc__ = RDD.sum.__doc__
 
-    def fold(self: "RDDAdapter[T]", zeroValue: T, op: Callable[[T, T], T]) -> T:
-        op = fail_on_stopiteration(op)
-
-        def func(iterator: Iterable[T]) -> Iterable[T]:
-            acc = zeroValue
-            for obj in iterator:
-                acc = op(acc, obj)
-            yield acc
-
-        vals = self.mapPartitions(func).collect()
-        return reduce(op, vals, zeroValue)
-
+    fold = RDD.fold
     fold.__doc__ = RDD.fold.__doc__
 
-    def keys(self: "RDDAdapter[Tuple[K, V]]") -> "RDDAdapter[K]":
-        return self.map(lambda x: x[0])
-
+    keys = RDD.keys
     keys.__doc__ = RDD.keys.__doc__
 
-    def values(self: "RDDAdapter[Tuple[K, V]]") -> "RDDAdapter[V]":
-        return self.map(lambda x: x[1])
-
+    values = RDD.values
     values.__doc__ = RDD.values.__doc__
 
-    def glom(self: "RDDAdapter[T]") -> "RDDAdapter[List[T]]":
-        def func(iterator: Iterable[T]) -> Iterable[List[T]]:
-            yield list(iterator)
-
-        return self.mapPartitions(func)
-
+    glom = RDD.glom
     glom.__doc__ = RDD.glom.__doc__
 
-    def keyBy(self: "RDDAdapter[T]", f: Callable[[T], K]) -> "RDDAdapter[Tuple[K, T]]":
-        return self.map(lambda x: (f(x), x))
-
+    keyBy = RDD.keyBy
     keyBy.__doc__ = RDD.keyBy.__doc__
+
+    reduce = RDD.reduce
+    reduce.__doc__ = RDD.reduce.__doc__
+
+    stats = RDD.stats
+    stats.__doc__ = RDD.stats.__doc__
+
+    stdev = RDD.stdev
+    stdev.__doc__ = RDD.stdev.__doc__
+
+    sampleStdev = RDD.sampleStdev
+    sampleStdev.__doc__ = RDD.sampleStdev.__doc__
+
+    sampleVariance = RDD.sampleVariance
+    sampleVariance.__doc__ = RDD.sampleVariance.__doc__
+
+    variance = RDD.variance
+    variance.__doc__ = RDD.variance.__doc__
+
+    aggregate = RDD.aggregate
+    aggregate.__doc__ = RDD.aggregate.__doc__
 
     class WrappedIterator(Iterable):
         """This is a helper class that wraps the iterator of RecordBatches as returned by
@@ -336,8 +320,45 @@ class RDDAdapter(Generic[T_co]):
     def mapPartitions(
         self, f: Callable[[Iterable[T]], Iterable[U]], preservesPartitioning=False
     ) -> "RDDAdapter[U]":
+        # Every pipeline becomes mapPartitions in the end. So we pass the current RDD as the
+        # previous reference and the next transformation function.
+        return Pipeline(self, f)
+
+    mapPartitions.__doc__ = RDD.mapPartitions.__doc__
+
+
+class Pipeline(RDDAdapter):
+
+    def __init__(self, input: "RDDAdapter", f):
+
+        if isinstance(input, Pipeline):
+            source = input._prev_source
+            self._prev_source = source
+
+            prev_fun = input._prev_fun
+            next_fun = lambda ite: f(prev_fun(ite))
+
+            self._prev_fun = next_fun
+            self._prev_first_field = input._prev_first_field
+            first_field = input._prev_first_field
+        else:
+            # Cache the input DF and functions before mapping it.
+            next_fun = f
+            self._prev_source = input._df
+            self._prev_fun = next_fun
+            self._prev_first_field = input._first_field
+            first_field = input._first_field
+            source = input._df
+
+        mapper = self._build_mapper(next_fun, first_field)
+        # These are the output values of the operations, when a terminal operation is called
+        # they will be evaluated.
+        self._df = source.mapInArrow(mapper, RDDAdapter.BIN_SCHEMA)
+        self._first_field = True
+
+    def _build_mapper(self, f, needs_conversion):
+        # Fixed constants for the mapPartitions implementation.
         schema = RDDAdapter.PA_SCHEMA
-        needs_conversion = self._first_field
         max_rows_per_batch = 1000
 
         def mapper(iter: Iterable[RecordBatch]):
@@ -355,10 +376,4 @@ class RDDAdapter(Generic[T_co]):
             if len(result) > 0:
                 yield RecordBatch.from_pylist(result, schema=schema)
 
-        # MapInArrow is effectively mapPartitions, but streams the rows as batches to the RDD,
-        # we leverage this fact here and build wrappers for that.
-        result = self._df.mapInArrow(mapper, RDDAdapter.BIN_SCHEMA)
-        assert len(result.schema.fields) == 1
-        return RDDAdapter(result, True)
-
-    mapPartitions.__doc__ = RDD.mapPartitions.__doc__
+        return mapper
