@@ -271,10 +271,12 @@ def test_rdd_filter(spark_session: "SparkSession"):
     rdd = spark_session.sparkContext.parallelize(range(10))
     assert rdd.filter(lambda x: x % 2 == 0).collect() == [0, 2, 4, 6, 8]
 
+
 def test_rdd_mean(spark_session: "SparkSession"):
     monkey_patch_spark()
     rdd = spark_session.sparkContext.parallelize(range(10))
     assert rdd.mean() == 4.5
+
 
 def test_rdd_variance(spark_session: "SparkSession"):
     monkey_patch_spark()
