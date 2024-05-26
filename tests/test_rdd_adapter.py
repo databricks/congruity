@@ -282,3 +282,38 @@ def test_rdd_variance(spark_session: "SparkSession"):
     monkey_patch_spark()
     rdd = spark_session.sparkContext.parallelize(range(10))
     assert rdd.variance() == 8.25
+
+
+def test_rdd_groupBy(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize(range(10))
+    res = rdd.groupBy(lambda x: x % 2).collect()
+    assert list(res[0][1]) == [0, 2, 4, 6, 8]
+    assert list(res[1][1]) == [1, 3, 5, 7, 9]
+
+    # Create a test where we create a dataframe to create the RDD first
+    df = spark_session.createDataFrame([(1, 2), (1, 3), (2, 4)], ["key", "value"])
+    res = df.rdd.groupBy(lambda x: x.key).collect()
+    assert list(res[0][1]) == [Row(key=1, value=2), Row(key=1, value=3)]
+    assert list(res[1][1]) == [Row(key=2, value=4)]
+
+
+def test_rdd_map_with_rows(spark_session: "SparkSession"):
+    df = spark_session.createDataFrame([(1, 2), (1, 3), (2, 4)], ["key", "value"])
+    res = df.rdd.map(lambda x: x).collect()
+    assert res == [Row(key=1, value=2), Row(key=1, value=3), Row(key=2, value=4)]
+
+
+def test_rdd_groupByKey(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize([(1, 2), (1, 3), (2, 4)])
+    res = rdd.groupByKey().collect()
+    assert list(res[0][1]) == [2, 3]
+    assert list(res[1][1]) == [4]
+
+
+def test_rdd_mapValues(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize([(1, 2), (1, 3), (2, 4)])
+    res = rdd.mapValues(lambda x: x * 2).collect()
+    assert res == [(1, 4), (1, 6), (2, 8)]

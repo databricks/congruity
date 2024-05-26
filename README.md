@@ -96,8 +96,8 @@ that open a pull request and we will review it.
 | getResourceProfile                | :x:                |                                                                   |
 | getStorageLevel                   | :x:                |                                                                   |
 | glom                              | :white_check_mark: |                                                                   |
-| groupBy                           | :x:                |                                                                   |
-| groupByKey                        | :x:                |                                                                   |
+| groupBy                           | :white_check_mark: |                                                                   |
+| groupByKey                        | :white_check_mark: |                                                                   |
 | groupWith                         | :x:                |                                                                   |
 | histogram                         | :white_check_mark: |                                                                   |
 | id                                | :x:                |                                                                   |
@@ -115,7 +115,7 @@ that open a pull request and we will review it.
 | mapPartitions                     | :white_check_mark: | First version, based on mapInArrow.                               |
 | mapPartitionsWithIndex            | :x:                |                                                                   |
 | mapPartitionsWithSplit            | :x:                |                                                                   |
-| mapValues                         | :x:                |                                                                   |
+| mapValues                         | :white_check_mark: |                                                                   |
 | max                               | :white_check_mark: |                                                                   |
 | mean                              | :white_check_mark: |                                                                   |
 | meanApprox                        | :x:                |                                                                   |
@@ -173,3 +173,10 @@ that open a pull request and we will review it.
 |-------------|--------------------|---------------------------------|
 | parallelize | :white_check_mark: | Does not support numSlices yet. |
 
+## Limitations
+
+* Error handling and checking is kind of limited right now. We try
+  to emulate the existing behavior, but this is not always possible
+  because the invariants are not encode in Python but rather somewhere
+  in Scala.
+* `numSlices` - we don't emulate this behavior for now.
