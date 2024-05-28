@@ -13,18 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
 from pyspark.cloudpickle import dumps
-from pyspark.sql.connect.dataframe import DataFrame
-from pyspark.sql.connect.session import SparkSession
 
 from congruity.rdd_adapter import RDDAdapter
 
+if TYPE_CHECKING:
+    from pyspark.sql.connect.dataframe import DataFrame
+    from pyspark.sql.connect.session import SparkSession
+
 
 class SparkContextAdapter:
-    _spark: SparkSession
+    _spark: "SparkSession"
 
-    def __init__(self, spark: SparkSession):
+    def __init__(self, spark: "SparkSession"):
         self._spark = spark
 
     def parallelize(self, data: Any, slices: Optional[int] = None) -> "RDDAdapter":
@@ -40,5 +42,5 @@ class SparkContextAdapter:
         )
 
 
-def adapt_to_spark_context(self: DataFrame) -> SparkContextAdapter:
+def adapt_to_spark_context(self: "DataFrame") -> SparkContextAdapter:
     return SparkContextAdapter(self)

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from pyspark.errors import PySparkAttributeError, PySparkNotImplementedError
-from pyspark.sql.connect.session import SparkSession
 
 from congruity.json_conversion import to_json_conversion
 from congruity.rdd_adapter import adapt_to_rdd
@@ -34,6 +33,8 @@ def adapt_session_getattr(self, name):
 
 
 def monkey_patch_spark():
+    from pyspark.sql.connect.session import SparkSession
+
     global _monkey_patch_complete
     if _monkey_patch_complete:
         return
