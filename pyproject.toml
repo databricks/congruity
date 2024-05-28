@@ -15,7 +15,7 @@
 
 [tool.poetry]
 name = "spark-congruity"
-version = "0.0.1rc2"
+version = "0.0.1rc3"
 description = ""
 authors = ["Matthew Powers <matthewkevinpowers@gmail.com>", "Martin Grund <martin@databricks.com>"]
 readme = "README.md"
