@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 _monkey_patch_complete = False
-print("Called")
 from congruity.helper.patch import monkey_patch_spark
 
 monkey_patch_spark()
