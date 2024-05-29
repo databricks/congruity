@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from congruity import monkey_patch_spark
+from congruity.helper.patch import monkey_patch_spark
 from pyspark.sql import SparkSession
 
 

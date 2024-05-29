@@ -35,6 +35,9 @@ import pandas
 from pyspark.serializers import CloudPickleSerializer, CPickleSerializer, AutoBatchedSerializer
 from pyspark.statcounter import StatCounter
 
+import congruity.helper
+from congruity.helper.rdd import WrappedIterator
+
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
 U = TypeVar("U")
@@ -397,33 +400,6 @@ class RDDAdapter(Generic[T_co]):
     mapValues = RDD.mapValues
     mapValues.__doc__ = RDD.mapValues.__doc__
 
-    class WrappedIterator(Iterable):
-        """This is a helper class that wraps the iterator of RecordBatches as returned by
-        mapInArrow and converts it into an iterator of the underlaying values."""
-
-        def __init__(self, i: Iterable[RecordBatch], first_field=False):
-            self._first_field = first_field
-            self._iter = i
-            self._current_batch = None
-            self._current_idx = 0
-            self._done = False
-
-        def __next__(self):
-            if self._current_batch is None or self._current_idx >= len(self._current_batch):
-                self._current_idx = 0
-                v: RecordBatch = next(self._iter)
-                if self._first_field:
-                    self._current_batch = [loads(x["__bin_field__"]) for x in v.to_pylist()]
-                else:
-                    self._current_batch = [Row(**x) for x in v.to_pylist()]
-
-            result = self._current_batch[self._current_idx]
-            self._current_idx += 1
-            return result
-
-        def __iter__(self):
-            return self
-
     def mapPartitions(
         self, f: Callable[[Iterable[T]], Iterable[U]], preservesPartitioning=False
     ) -> "RDDAdapter[U]":
@@ -449,25 +425,9 @@ class TupleAdapter(RDDAdapter):
         # Fixed constants for the mapPartitions implementation.
         schema = RDDAdapter.PA_TUPLE_SCHEMA
         max_rows_per_batch = 1000
-
-        def mapper(iter: Iterable[RecordBatch]):
-            # the function that is passed to mapPartitions works the same way as the mapper. But
-            # when next(iter) is called we have to send the converted batch instead of the raw
-            # data.
-            wrapped = RDDAdapter.WrappedIterator(iter, needs_conversion)
-            result = []
-            for kv in f(wrapped):
-                # kv is a tuple with a key value pair.
-                assert len(kv) == 2
-                result.append({"__bin_field_k__": dumps(kv[0]), "__bin_field_v__": dumps(kv[1])})
-                if len(result) > max_rows_per_batch:
-                    yield RecordBatch.from_pylist(result, schema=schema)
-                    result = []
-
-            if len(result) > 0:
-                yield RecordBatch.from_pylist(result, schema=schema)
-
-        return mapper
+        return congruity.helper.generate_tuple_mapper(
+            f, needs_conversion, schema, max_rows_per_batch
+        )
 
 
 class Pipeline(RDDAdapter):
@@ -509,20 +469,6 @@ class Pipeline(RDDAdapter):
         # Fixed constants for the mapPartitions implementation.
         schema = RDDAdapter.PA_SCHEMA
         max_rows_per_batch = 1000
-
-        def mapper(iter: Iterable[RecordBatch]):
-            # the function that is passed to mapPartitions works the same way as the mapper. But
-            # when next(iter) is called we have to send the converted batch instead of the raw
-            # data.
-            wrapped = RDDAdapter.WrappedIterator(iter, needs_conversion)
-            result = []
-            for batch in f(wrapped):
-                result.append({"__bin_field__": dumps(batch)})
-                if len(result) > max_rows_per_batch:
-                    yield RecordBatch.from_pylist(result, schema=schema)
-                    result = []
-
-            if len(result) > 0:
-                yield RecordBatch.from_pylist(result, schema=schema)
-
-        return mapper
+        return congruity.helper.generate_partitions_mapper(
+            f, needs_conversion, schema, max_rows_per_batch
+        )

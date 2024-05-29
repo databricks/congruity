@@ -19,7 +19,7 @@ import pyspark.sql.connect.session
 import pytest
 from pyspark import Row
 
-from congruity import monkey_patch_spark
+from congruity.helper.patch import monkey_patch_spark
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.types import IntegerType, StructType, StructField
 
