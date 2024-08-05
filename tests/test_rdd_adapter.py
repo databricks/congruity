@@ -317,3 +317,27 @@ def test_rdd_mapValues(spark_session: "SparkSession"):
     rdd = spark_session.sparkContext.parallelize([(1, 2), (1, 3), (2, 4)])
     res = rdd.mapValues(lambda x: x * 2).collect()
     assert res == [(1, 4), (1, 6), (2, 8)]
+
+
+def test_collect_as_map(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    rdd = spark_session.sparkContext.parallelize([(1, 2), (1, 3), (2, 4)])
+    assert rdd.isEmpty() is False
+    res = rdd.collectAsMap()
+    assert res == {1: 3, 2: 4}
+
+
+def test_rdd_is_empty(spark_session: "SparkSession"):
+    monkey_patch_spark()
+    schema = StructType([])
+    #Unable to use emptyRDD and send empty list to parallelize hence this approach
+    empty_df = spark_session.createDataFrame([], schema)
+    empty_rdd = empty_df.rdd
+    non_empty_rdd = spark_session.sparkContext.parallelize([1, 2, 3])
+
+    assert empty_rdd.isEmpty() is True
+    assert non_empty_rdd.isEmpty() is False
+    assert empty_rdd.count() == 0
+    assert non_empty_rdd.count() > 0
+    assert empty_rdd.collect() == []
+    assert non_empty_rdd.collect() == [1, 2, 3]
