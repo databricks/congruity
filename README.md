@@ -76,7 +76,7 @@ that open a pull request and we will review it.
 | coalesce                          | :x:                |                                                                   |
 | cogroup                           | :x:                |                                                                   |
 | collect                           | :white_check_mark: |                                                                   |
-| collectAsMap                      | :x:                |                                                                   |
+| collectAsMap                      | :white_check_mark:                |                                                                   |
 | collectWithJobGroup               | :x:                |                                                                   |
 | combineByKey                      | :x:                |                                                                   |
 | count                             | :white_check_mark: |                                                                   |
@@ -103,7 +103,7 @@ that open a pull request and we will review it.
 | id                                | :x:                |                                                                   |
 | intersection                      | :x:                |                                                                   |
 | isCheckpointed                    | :x:                |                                                                   |
-| isEmpty                           | :x:                |                                                                   |
+| isEmpty                           | :white_check_mark:                |                                                                   |
 | isLocallyCheckpointed             | :x:                |                                                                   |
 | join                              | :x:                |                                                                   |
 | keyBy                             | :white_check_mark: |                                                                   |

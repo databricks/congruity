@@ -330,7 +330,7 @@ def test_collect_as_map(spark_session: "SparkSession"):
 def test_rdd_is_empty(spark_session: "SparkSession"):
     monkey_patch_spark()
     schema = StructType([])
-    #Unable to use emptyRDD and send empty list to parallelize hence this approach
+    # Unable to use emptyRDD and send empty list to parallelize hence this approach
     empty_df = spark_session.createDataFrame([], schema)
     empty_rdd = empty_df.rdd
     non_empty_rdd = spark_session.sparkContext.parallelize([1, 2, 3])
