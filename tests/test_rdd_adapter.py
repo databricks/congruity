@@ -326,6 +326,11 @@ def test_collect_as_map(spark_session: "SparkSession"):
     res = rdd.collectAsMap()
     assert res == {1: 3, 2: 4}
 
+    # Negative scenario if the rdd type is not tuple
+    non_tuple_rdd = spark_session.sparkContext.parallelize([1, 2, 3, 4])
+    with pytest.raises(TypeError):
+        non_tuple_rdd.collectAsMap()
+
 
 def test_rdd_is_empty(spark_session: "SparkSession"):
     monkey_patch_spark()
