@@ -169,10 +169,10 @@ class RDDAdapter(Generic[T_co]):
         raise NotImplementedError(f"Collecting Data type {type(data)} is not supported")
 
     def toDF(
-            self,
-            schema: Optional[Union[sqltypes.AtomicType, sqltypes.StructType, str]] = None,
-            samplingRatio: Optional[float] = None,
-            verifySchema: bool = True,
+        self,
+        schema: Optional[Union[sqltypes.AtomicType, sqltypes.StructType, str]] = None,
+        samplingRatio: Optional[float] = None,
+        verifySchema: bool = True,
     ) -> "DataFrame":
         if isinstance(schema, sqltypes.StructType):
             verify_func = sqltypes._make_type_verifier(schema) if verifySchema else lambda _: True
@@ -236,10 +236,10 @@ class RDDAdapter(Generic[T_co]):
     toDF.__doc__ = RDD.toDF.__doc__
 
     def _infer_schema(
-            self,
-            rdd: "RDDAdapter",
-            samplingRatio: Optional[float] = None,
-            names: Optional[List[str]] = None,
+        self,
+        rdd: "RDDAdapter",
+        samplingRatio: Optional[float] = None,
+        names: Optional[List[str]] = None,
     ) -> sqltypes.StructType:
         first = rdd.first()
         if isinstance(first, Sized) and len(first) == 0:
@@ -272,7 +272,7 @@ class RDDAdapter(Generic[T_co]):
     take.__doc__ = RDD.take.__doc__
 
     def map(
-            self: "RDDApapter[T]", f: Callable[[T], U], preservesPartitioning=None
+        self: "RDDApapter[T]", f: Callable[[T], U], preservesPartitioning=None
     ) -> "RDDAdapter[U]":
         def func(iterator: Iterable[T]) -> Iterable[U]:
             return map(fail_on_stopiteration(f), iterator)
@@ -344,10 +344,10 @@ class RDDAdapter(Generic[T_co]):
     variance.__doc__ = RDD.variance.__doc__
 
     def groupBy(
-            self: "RDDAdapter[T]",
-            f: Callable[[T], K],
-            numPartitions: Optional[int] = None,
-            partitionFunc: Callable[[K], int] = lambda x: 1,
+        self: "RDDAdapter[T]",
+        f: Callable[[T], K],
+        numPartitions: Optional[int] = None,
+        partitionFunc: Callable[[K], int] = lambda x: 1,
     ) -> "RDDAdapter[Tuple[K, Iterable[T]]]":
         # First transform the date into a tuple, in contrast to the regular map calls, we're going to
         # create the tuple as something that has two columns rather than one serialized value.
@@ -363,13 +363,14 @@ class RDDAdapter(Generic[T_co]):
     groupBy.__doc__ = RDD.groupBy.__doc__
 
     def groupByKey(
-            self: "RDDAdapter[Tuple[K, V]]",
-            numPartitions: Optional[int] = None,
-            partitionFunc: Callable[[K], int] = lambda x: 1,
+        self: "RDDAdapter[Tuple[K, V]]",
+        numPartitions: Optional[int] = None,
+        partitionFunc: Callable[[K], int] = lambda x: 1,
     ) -> "RDDAdapter[Tuple[K, Iterable[V]]]":
 
         input_tuples = self
         if not isinstance(self, TupleAdapter):
+
             def extractor(x):
                 # Extracting the k, v using unpacking will automatically raise an exception if the
                 # number of values does not match.
@@ -409,7 +410,7 @@ class RDDAdapter(Generic[T_co]):
     mapValues.__doc__ = RDD.mapValues.__doc__
 
     def mapPartitions(
-            self, f: Callable[[Iterable[T]], Iterable[U]], preservesPartitioning=False
+        self, f: Callable[[Iterable[T]], Iterable[U]], preservesPartitioning=False
     ) -> "RDDAdapter[U]":
         # Every pipeline becomes mapPartitions in the end. So we pass the current RDD as the
         # previous reference and the next transformation function.
