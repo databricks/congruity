@@ -29,6 +29,7 @@ from typing import (
     TypeVar,
     Hashable,
     Generic,
+    Dict,
 )
 
 import pandas
@@ -46,7 +47,6 @@ V = TypeVar("V")
 V1 = TypeVar("V1")
 V2 = TypeVar("V2")
 V3 = TypeVar("V3")
-
 
 import pyarrow as pa
 from pyarrow import RecordBatch
@@ -150,6 +150,15 @@ class RDDAdapter(Generic[T_co]):
             assert len(self._df.schema.fields) == 1
             return [self._unnest_data(row[0]) for row in data]
         return data
+
+    def collectAsMap(self: "RDDAdapter[Tuple[K, V]]") -> Dict[K, V]:
+        data = self.collect()
+        if not all(isinstance(item, tuple) for item in data):
+            raise TypeError("Elements in the RDD must be of type tuple to be collected as a map")
+        return dict(data)
+
+    def isEmpty(self) -> bool:
+        return len(self.take(1)) == 0
 
     def _unnest_data(self, data: Any) -> Any:
         if any(map(lambda x: isinstance(data, x), (str, Row, int, float, bool, type(None)))):
