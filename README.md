@@ -46,7 +46,7 @@ This code doesn't work with Spark Connect. The congruity library rearranges the 
 works on Spark Connect clusters as well:
 
 ```python
-import congruity  # noqa: F401
+import congruity.patch  # noqa: F401
 from pyspark.sql import SparkSession
 
 spark = SparkSession.builder.remote("sc://localhost").getOrCreate()
