@@ -27,7 +27,7 @@ pip install spark-congruity
 ```
 
 ```python
-import congruity
+import congruity.patch
 ```
 
 ### Example
